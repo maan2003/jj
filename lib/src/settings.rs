@@ -102,7 +102,9 @@ impl SignSettings {
             SignBehavior::Keep => {
                 commit.secure_sig.is_some() && commit.author.email == self.user_email
             }
-            SignBehavior::Own => commit.author.email == self.user_email,
+            SignBehavior::Own => {
+                commit.author.email == self.user_email && !commit.description.is_empty()
+            }
             SignBehavior::Force => true,
         }
     }
