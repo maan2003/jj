@@ -22,6 +22,7 @@ use std::fmt::Debug;
 use std::fmt::Formatter;
 use std::fs;
 use std::path::Path;
+use std::path::PathBuf;
 use std::slice;
 use std::sync::Arc;
 
@@ -260,6 +261,7 @@ impl ReadonlyRepo {
         let submodule_store = Arc::from(submodule_store);
 
         let loader = RepoLoader {
+            repo_path: Some(repo_path.to_owned()),
             settings: settings.clone(),
             store,
             op_store,
@@ -671,6 +673,7 @@ pub enum RepoLoaderError {
 /// a given operation.
 #[derive(Clone)]
 pub struct RepoLoader {
+    repo_path: Option<PathBuf>,
     settings: UserSettings,
     store: Arc<Store>,
     op_store: Arc<dyn OpStore>,
@@ -681,6 +684,7 @@ pub struct RepoLoader {
 
 impl RepoLoader {
     pub fn new(
+        repo_path: Option<PathBuf>,
         settings: UserSettings,
         store: Arc<Store>,
         op_store: Arc<dyn OpStore>,
@@ -689,6 +693,7 @@ impl RepoLoader {
         submodule_store: Arc<dyn SubmoduleStore>,
     ) -> Self {
         Self {
+            repo_path,
             settings,
             store,
             op_store,
@@ -729,6 +734,7 @@ impl RepoLoader {
             store_factories.load_submodule_store(settings, &repo_path.join("submodule_store"))?,
         );
         Ok(Self {
+            repo_path: Some(repo_path.to_owned()),
             settings: settings.clone(),
             store,
             op_store,
@@ -740,6 +746,10 @@ impl RepoLoader {
 
     pub fn settings(&self) -> &UserSettings {
         &self.settings
+    }
+
+    pub fn repo_path(&self) -> Option<&Path> {
+        self.repo_path.as_deref()
     }
 
     pub fn store(&self) -> &Arc<Store> {
